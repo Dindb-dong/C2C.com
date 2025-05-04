@@ -1,0 +1,17 @@
+.mentoring-page {
+  padding: 6rem 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mentoring-page h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.mentoring-page p {
+  color: #666;
+  font-size: 1.1rem;
+} 

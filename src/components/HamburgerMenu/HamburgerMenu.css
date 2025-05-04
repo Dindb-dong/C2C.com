@@ -1,0 +1,84 @@
+.hamburger-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: 1rem;
+}
+
+.hamburger-icon {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: #333;
+  position: relative;
+  top: 10px;
+}
+
+.hamburger-icon::before,
+.hamburger-icon::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 2px;
+  background-color: #333;
+}
+
+.hamburger-icon::before {
+  top: -6px;
+}
+
+.hamburger-icon::after {
+  bottom: -6px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+}
+
+.modal-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: white;
+  z-index: 1001;
+  transform: translateX(0);
+  transition: transform 0.3s ease-in-out;
+}
+
+.modal-nav {
+  padding: 2rem 1rem;
+}
+
+.modal-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-nav-item {
+  margin-bottom: 1rem;
+}
+
+.modal-nav-link {
+  text-decoration: none;
+  color: #333;
+  font-size: 1.1rem;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.modal-nav-link:hover {
+  background-color: #f0f0f0;
+} 

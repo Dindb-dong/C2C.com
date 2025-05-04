@@ -1,0 +1,83 @@
+.newsletter-page {
+  padding: 6rem 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topic-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.topic-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.topic-button:hover {
+  background-color: #f0f0f0;
+}
+
+.topic-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.custom-topic-input {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.article-container {
+  margin: 2rem 0;
+  min-height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.article {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+}
+
+.recommended-topics {
+  margin-top: 2rem;
+}
+
+.recommended-topics h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.topic-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.recommended-topic-button {
+  padding: 0.5rem 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recommended-topic-button:hover {
+  background-color: #e9ecef;
+} 

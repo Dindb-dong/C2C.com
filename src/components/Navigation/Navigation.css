@@ -1,0 +1,40 @@
+.navigation {
+  background-color: #f8f9fa;
+  padding: 1rem 0;
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #e9ecef;
+}
+
+.nav-link.active {
+  background-color: #007bff;
+  color: white;
+} 
