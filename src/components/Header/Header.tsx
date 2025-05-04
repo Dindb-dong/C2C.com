@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import HamburgerMenu from '../HamburgerMenu/HamburgerMenu';
 import './Header.css';
 
 const Header: React.FC = () => {
@@ -18,7 +19,10 @@ const Header: React.FC = () => {
   return (
     <header className="header">
       <div className="header-content">
-        <Link to="/main" className="site-title">C2C.com</Link>
+        <div className="header-left">
+          <HamburgerMenu />
+          <Link to="/main" className="site-title">C2C.com</Link>
+        </div>
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"

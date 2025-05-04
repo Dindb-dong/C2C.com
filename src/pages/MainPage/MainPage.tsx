@@ -55,7 +55,7 @@ const MainPage: React.FC = () => {
 
       {/* Hot 게시글 목록 */}
       <div className="hot-posts">
-        <h2>Hot 게시글</h2>
+        <h2>🔥 Hot 게시글</h2>
         <div className="posts-grid">
           {hotPosts.map((post) => (
             <Link
