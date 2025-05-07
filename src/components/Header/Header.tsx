@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import HamburgerMenu from '../HamburgerMenu/HamburgerMenu';
 import './Header.css';
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNoResults, setShowNoResults] = useState(false);
-  const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

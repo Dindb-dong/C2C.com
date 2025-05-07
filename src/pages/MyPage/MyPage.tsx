@@ -10,7 +10,7 @@ const MyPage: React.FC = () => {
   const [nickname, setNickname] = useState('홍길동');
   const [email, setEmail] = useState('user@example.com');
   const [password, setPassword] = useState('');
-  const [point, setPoint] = useState(1200);
+  const [point] = useState(1200);
   const [editMode, setEditMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
