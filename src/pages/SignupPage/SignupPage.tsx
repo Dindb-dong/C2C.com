@@ -1,6 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SignupPage.css';
+import { request } from '../../utils/request';
+
+interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,15 +27,36 @@ const SignupPage: React.FC = () => {
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // mock signup
-    if (email && password && nickname) {
-      // 실제로는 서버에 저장 필요
-      alert('회원가입이 완료되었습니다!');
-      navigate('/login');
-    } else {
-      setError('모든 항목을 입력하세요.');
+    setError('');
+
+    try {
+      const signupData: SignupRequest = {
+        email,
+        password,
+        name: nickname
+      };
+
+      const response = await request.post<AuthResponse>('/api/signup', signupData);
+
+      // 토큰을 로컬 스토리지에 저장
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      if (response.status === 201) {
+        alert('회원가입이 완료되었습니다!');
+        navigate('/');
+      } else if (response.status === 400) {
+        setError('이미 존재하는 이메일입니다.');
+      } else { // 500 에러
+        setError('회원가입 중 오류가 발생했습니다.');
+      }
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        setError('이미 존재하는 이메일입니다.');
+      } else {
+        setError('회원가입 중 오류가 발생했습니다.');
+      }
     }
   };
 
