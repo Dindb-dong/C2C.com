@@ -28,9 +28,25 @@ const SignupPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const validatePassword = (password: string): boolean => {
+    // 영어, 숫자, 특수문자를 모두 포함하는지 확인
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isLengthValid = password.length >= 8 && password.length < 16;
+
+    return hasLetter && hasNumber && hasSpecial && isLengthValid;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!validatePassword(password)) {
+      setError('비밀번호는 8자 이상 16자 미만이며, 영어, 숫자, 특수문자를 모두 포함해야 합니다.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {

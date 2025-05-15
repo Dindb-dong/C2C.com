@@ -119,6 +119,7 @@ const MyPage: React.FC = () => {
   }
 
   if (!profile) {
+    handleLogout();
     return <div className="mypage-container">멘토 프로필을 불러올 수 없습니다.</div>;
   }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { request } from '../../utils/request';
-import { setAccessToken, setRefreshToken, setUserRole } from '../../utils/storage';
+import { setAccessToken, setRefreshToken, setUserRole, setUserId } from '../../utils/storage';
 import './LoginPage.css';
 
 interface LoginResponse {
@@ -36,10 +36,11 @@ const LoginPage: React.FC = () => {
       if (response.status === 200) {
         const { accessToken, refreshToken, user } = response.data;
 
-        // 토큰 저장
+        // 토큰과 사용자 정보 저장
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
         setUserRole(user.role);
+        setUserId(user.id);
 
         // 사용자 정보와 함께 마이페이지로 이동
         navigate('/my-page');
