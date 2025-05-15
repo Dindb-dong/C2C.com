@@ -180,4 +180,27 @@
   min-height: 200px;
   font-size: 1.2rem;
   color: #666;
+}
+
+.mentor-profile-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.mentor-profile-section h2 {
+  margin-bottom: 1rem;
+  color: #4a90e2;
+  font-size: 1.2rem;
+}
+.mentor-profile-item {
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+  color: #333;
+}
+.mentor-profile-item strong {
+  display: inline-block;
+  min-width: 140px;
+  color: #6f42c1;
 } 

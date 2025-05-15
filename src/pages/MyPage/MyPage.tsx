@@ -60,7 +60,7 @@ const MyPage: React.FC = () => {
 
         // 멘토인 경우 멘토 프로필도 가져오기
         if (response.data.role === 'mentor') {
-          const mentorResponse = await request.get<MentorProfile>('/mentor/profile');
+          const mentorResponse = await request.get<MentorProfile>('/mentor/my-profile');
           if (mentorResponse.status === 200) {
             setMentorProfile(mentorResponse.data);
           }
@@ -229,7 +229,7 @@ const MyPage: React.FC = () => {
                   >
                     정보 수정
                   </button>
-                  {profile.role !== 'MENTOR' && (
+                  {profile.role !== 'mentor' && (
                     <button
                       type="button"
                       className="mentor-btn"
@@ -249,6 +249,17 @@ const MyPage: React.FC = () => {
               </button>
             </div>
           </form>
+          {profile.role === 'mentor' && mentorProfile && (
+            <div className="mentor-profile-section">
+              <h2>멘토 프로필</h2>
+              <div className="mentor-profile-item"><strong>멘토 닉네임:</strong> {mentorProfile.name}</div>
+              <div className="mentor-profile-item"><strong>멘토링 한 줄 소개:</strong> {mentorProfile.title}</div>
+              <div className="mentor-profile-item"><strong>멘토 및 멘토링 상세 소개:</strong> {mentorProfile.description}</div>
+              <div className="mentor-profile-item"><strong>경력:</strong> {mentorProfile.career}</div>
+              <div className="mentor-profile-item"><strong>보유 기술:</strong> {mentorProfile.skills.join(', ')}</div>
+              <div className="mentor-profile-item"><strong>시간당 요금:</strong> {mentorProfile.hourly_rate.toLocaleString()}원</div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -4,11 +4,12 @@ import { request } from '../../utils/request';
 import './MentorRegistrationPage.css';
 
 interface MentorRegistrationData {
-  title: string;
-  description: string;
-  career: string;
-  skills: string[];
-  hourly_rate: number;
+  name: string; // 멘토 닉네임
+  title: string; // 멘토링 한 줄 소개
+  description: string; // 멘토 및 멘토링 소개 
+  career: string; // 경력
+  skills: string[]; // 보유 기술
+  hourly_rate: number; // 시간당 요금
 }
 
 const MentorRegistrationPage: React.FC = () => {
@@ -16,6 +17,7 @@ const MentorRegistrationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [career, setCareer] = useState('');
@@ -29,9 +31,10 @@ const MentorRegistrationPage: React.FC = () => {
 
     try {
       const registrationData: MentorRegistrationData = {
-        title,
-        description,
-        career,
+        name: name,
+        title: title,
+        description: description,
+        career: career,
         skills: skills.split(',').map(skill => skill.trim()),
         hourly_rate: Number(hourlyRate)
       };
@@ -57,23 +60,35 @@ const MentorRegistrationPage: React.FC = () => {
         {error && <div className="error-msg">{error}</div>}
 
         <div className="form-group">
-          <label>멘토링 제목</label>
+          <label>멘토 닉네임</label>
           <input
             type="text"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="멘토링 제목을 입력하세요"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="멘토 닉네임을 입력하세요"
             required
             disabled={isLoading}
           />
         </div>
 
         <div className="form-group">
-          <label>멘토링 소개</label>
+          <label>멘토링 한 줄 소개</label>
+          <input
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="멘토링 한 줄 소개를 입력하세요"
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>멘토 및 멘토링 상세 소개</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="멘토링에 대한 소개를 입력하세요"
+            placeholder="멘토 및 멘토링 상세 소개를 입력하세요"
             required
             disabled={isLoading}
             rows={4}
@@ -98,7 +113,7 @@ const MentorRegistrationPage: React.FC = () => {
             type="text"
             value={skills}
             onChange={e => setSkills(e.target.value)}
-            placeholder="보유 기술을 쉼표(,)로 구분하여 입력하세요"
+            placeholder="보유 기술을 쉼표(,)로 구분하여 입력하세요. 예: 재무,데이터분석"
             required
             disabled={isLoading}
           />
