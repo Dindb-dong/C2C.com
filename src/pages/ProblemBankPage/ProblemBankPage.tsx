@@ -1,16 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import './ProblemBankPage.css';
 import { request } from '../../utils/request';
-import { ChatMessage, ChatResponse } from '../../types/chat';
+import { getUserId } from '../../utils/storage';
 
-const sendMessage = async (messages: ChatMessage[]): Promise<ChatResponse> => {
+interface ChatMessage {
+  id: string;
+  userId: string;
+  content: string;
+  role: 'user' | 'assistant';
+  createdAt: Date;
+  problemId?: string;
+  metadata?: {
+    tokens?: number;
+    model?: string;
+    temperature?: number;
+  };
+}
+
+interface ChatRequest {
+  messages: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+  }>;
+  model?: string;
+  temperature?: number;
+  problemId?: string;
+}
+
+const sendMessage = async (messages: ChatRequest['messages']): Promise<ChatMessage> => {
   try {
-    const response = await request.post<ChatResponse>('/api/chat', {
+    const response = await request.post<{ success: boolean; data: ChatMessage }>('/chat', {
       messages,
-      model: 'gpt-4o', // 선택적
-      temperature: 0.7, // 선택적
+      model: 'gpt-4o',
+      temperature: 0.7,
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Chat error:', error);
     throw error;
@@ -18,29 +43,63 @@ const sendMessage = async (messages: ChatMessage[]): Promise<ChatResponse> => {
 };
 
 const ProblemBankPage: React.FC = () => {
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
-  // user와 assistant의 메시지를 저장하는 배열
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const id = await getUserId();
+      setUserId(id);
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || !userId) return;
 
-    // Add user message
-    setMessages(prev => [...prev, { role: 'user', content: inputMessage }]);
+    const newUserMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      userId,
+      content: inputMessage,
+      role: 'user',
+      createdAt: new Date(),
+    };
+
+    setMessages(prev => [...prev, newUserMessage]);
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(messages);
-      setMessages(prev => [...prev, { role: 'assistant', content: response.message.content }]);
+      const response = await sendMessage([
+        ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: inputMessage }
+      ]);
+      setMessages(prev => [...prev, response]);
     } catch (error) {
-      // 에러 메시지 표시
-      setMessages(prev => [...prev, {
+      const errorMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        userId: 'system',
+        content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
         role: 'assistant',
-        content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.'
-      }]);
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -50,9 +109,13 @@ const ProblemBankPage: React.FC = () => {
     <div className="problem-bank-page">
       <div className="chat-container">
         <div className="messages">
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              {message.content}
+          {messages.map((message) => (
+            <div key={message.id} className={`message ${message.role}`}>
+              {message.role === 'assistant' ? (
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              ) : (
+                message.content
+              )}
             </div>
           ))}
           {isLoading && (
@@ -64,15 +127,18 @@ const ProblemBankPage: React.FC = () => {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
         <form onSubmit={handleSendMessage} className="input-form">
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="메시지를 입력하세요..."
+            onKeyDown={handleKeyDown}
+            placeholder="메시지를 입력하세요... (Shift + Enter로 줄바꿈)"
             className="message-input"
             disabled={isLoading}
+            rows={3}
           />
           <button
             type="submit"
