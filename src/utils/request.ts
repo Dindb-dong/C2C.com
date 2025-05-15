@@ -7,7 +7,7 @@ import {
 } from './storage';
 
 // API 기본 URL 설정
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8090';
 console.log('API URL:', BASE_URL); // 디버깅용 로그
 
 // 기본 요청 설정
@@ -18,7 +18,7 @@ const defaultRequest = async <T>(
   const accessToken = await getAccessToken();
   const refreshToken = await getRefreshToken();
 
-  const url = `${BASE_URL}${path}`;
+  const url = `${BASE_URL}/api${path}`;
   const headers = {
     ...config.headers,
     Authorization: accessToken ? `Bearer ${accessToken}` : undefined,

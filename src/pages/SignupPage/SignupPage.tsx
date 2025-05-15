@@ -26,10 +26,12 @@ const SignupPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       const signupData: SignupRequest = {
@@ -38,18 +40,18 @@ const SignupPage: React.FC = () => {
         name: nickname
       };
 
-      const response = await request.post<AuthResponse>('/api/signup', signupData);
-
+      const response = await request.post<AuthResponse>('/auth/signup', signupData);
       // 토큰을 로컬 스토리지에 저장
-      localStorage.setItem('accessToken', response.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
       if (response.status === 201) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
         alert('회원가입이 완료되었습니다!');
         navigate('/');
       } else if (response.status === 400) {
         setError('이미 존재하는 이메일입니다.');
       } else { // 500 에러
         setError('회원가입 중 오류가 발생했습니다.');
+        console.log(response);
       }
     } catch (error: any) {
       if (error.response?.status === 400) {
@@ -57,6 +59,8 @@ const SignupPage: React.FC = () => {
       } else {
         setError('회원가입 중 오류가 발생했습니다.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,6 +75,7 @@ const SignupPage: React.FC = () => {
           value={nickname}
           onChange={e => setNickname(e.target.value)}
           required
+          disabled={isLoading}
         />
         <input
           type="email"
@@ -78,6 +83,7 @@ const SignupPage: React.FC = () => {
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
+          disabled={isLoading}
         />
         <input
           type="password"
@@ -85,8 +91,11 @@ const SignupPage: React.FC = () => {
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
+          disabled={isLoading}
         />
-        <button type="submit">회원가입</button>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? '회원가입 중...' : '회원가입'}
+        </button>
       </form>
     </div>
   );

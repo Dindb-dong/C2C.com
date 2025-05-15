@@ -10,6 +10,7 @@ import BoardPage from './pages/BoardPage/BoardPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import SignupPage from './pages/SignupPage/SignupPage';
 import MyPage from './pages/MyPage/MyPage';
+import MentorRegistrationPage from './pages/MentorRegistrationPage/MentorRegistrationPage';
 import './App.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/my-page" element={<MyPage />} />
+            <Route path="/mentor-registration" element={<MentorRegistrationPage />} />
           </Routes>
         </main>
       </div>
