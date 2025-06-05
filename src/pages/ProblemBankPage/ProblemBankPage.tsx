@@ -115,7 +115,7 @@ const ProblemBankPage: React.FC = () => {
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
       userId,
-      content: inputMessage,
+      content: '당신은 면접관입니다.' + inputMessage + '나에게 답변을 줄 때, 실제 면접관처럼 해주세요.',
       role: 'user',
       createdAt: new Date(),
     };
@@ -145,9 +145,63 @@ const ProblemBankPage: React.FC = () => {
     }
   };
 
+  const handleTemplateClick = async (templateType: 'guesstimation' | 'case') => {
+    if (isLoading || !userId) return;
+
+    const templateMessage = templateType === 'guesstimation'
+      ? '게스티메이션 문제를 만들어주세요.'
+      : '케이스 인터뷰를 진행해주세요.';
+
+    const newUserMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      userId,
+      content: '당신은 면접관입니다.' + templateMessage + '나에게 답변을 줄 때, 실제 면접관처럼 해주세요.',
+      role: 'user',
+      createdAt: new Date(),
+    };
+
+    setMessages(prev => [...prev, newUserMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await sendMessage([
+        ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: templateMessage }
+      ]);
+      setMessages(prev => [...prev, response]);
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        userId: 'system',
+        content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
+        role: 'assistant',
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="problem-bank-page">
       <div className="chat-container">
+        <div className="template-buttons">
+          <button
+            onClick={() => handleTemplateClick('guesstimation')}
+            className="template-button"
+            disabled={isLoading}
+          >
+            게스티메이션 문제를 만들어주세요.
+          </button>
+          <button
+            onClick={() => handleTemplateClick('case')}
+            className="template-button"
+            disabled={isLoading}
+          >
+            케이스 인터뷰를 진행해주세요.
+          </button>
+        </div>
         <div className="messages">
           {messages.map((message) => (
             <div key={message.id} className={`message ${message.role}`}>

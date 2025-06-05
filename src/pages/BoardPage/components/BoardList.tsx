@@ -13,7 +13,12 @@ const BoardList: React.FC<BoardListProps> = ({ boards, posts }) => {
 
   return (
     <div className="board-list">
-      <h2>게시판 목록</h2>
+      <div className="board-list-header">
+        <h2>게시판 목록</h2>
+        <button onClick={() => navigate('/board/create')} className="create-board-button">
+          게시판 생성
+        </button>
+      </div>
       <div className="boards-grid">
         {boards.map((board) => (
           <div

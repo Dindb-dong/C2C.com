@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './NewsletterPage.css';
 import { request } from '../../utils/request';
+interface TopicSummary {
+  title: string;
+  content: string;
+}
+interface NewsResponse {
+  articles: NewsArticle[];
+  topicSummary: TopicSummary[];
+}
 
 interface NewsArticle {
   id: string;
@@ -14,6 +22,7 @@ interface NewsArticle {
   categoryCode: string;
   createdAt: string;
   updatedAt: string;
+  topic: string;
 }
 
 interface Category {
@@ -23,19 +32,20 @@ interface Category {
 
 const NewsletterPage: React.FC = () => {
   const categories: Category[] = [
-    { name: '정치', code: '10000000' },
-    { name: '경제', code: '20000000' },
-    { name: '사회', code: '30000000' },
-    { name: '문화', code: '40000000' },
-    { name: '국제', code: '50000000' },
-    { name: '지역', code: '60000000' },
-    { name: '스포츠', code: '70000000' },
-    { name: 'IT과학', code: '80000000' }
+    { name: '정치', code: '001000000' },
+    { name: '경제', code: '002000000' },
+    { name: '사회', code: '003000000' },
+    { name: '문화', code: '004000000' },
+    { name: '국제', code: '005000000' },
+    { name: '지역', code: '006000000' },
+    { name: '스포츠', code: '007000000' },
+    { name: 'IT과학', code: '008000000' }
   ];
 
   const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [topicSummary, setTopicSummary] = useState<TopicSummary[]>([]);
   const [currentArticle, setCurrentArticle] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<string>('20000000');
+  const [selectedCategory, setSelectedCategory] = useState<string>('002000000');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,9 +57,10 @@ const NewsletterPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await request.get<NewsArticle[]>(`/news/category/${categoryCode}`);
+      const response = await request.get<NewsResponse>(`/news/topics/${categoryCode}?noSearch=true`);
       console.log(response.data);
-      setArticles(response.data);
+      setArticles(response.data.articles);
+      setTopicSummary(response.data.topicSummary);
       setCurrentArticle(0);
     } catch (err) {
       setError('뉴스를 불러오는데 실패했습니다.');
@@ -90,7 +101,7 @@ const NewsletterPage: React.FC = () => {
           <div className="loading">로딩 중...</div>
         ) : error ? (
           <div className="error">{error}</div>
-        ) : articles.length > 0 ? (
+        ) : topicSummary.length > 0 ? (
           <div
             className="article"
             onTouchStart={(e) => {
@@ -107,19 +118,34 @@ const NewsletterPage: React.FC = () => {
               document.addEventListener('touchmove', handleTouchMove);
             }}
           >
-            <h2>{articles[currentArticle]?.title}</h2>
-            <div
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: articles[currentArticle]?.content || '' }}
-            />
-            <div className="article-meta">
-              <a className="url" href={articles[currentArticle]?.url} target="_blank" rel="noopener noreferrer">출처: {articles[currentArticle]?.source}</a>
-              <span className="date">
-                {new Date(articles[currentArticle]?.publishedAt).toLocaleDateString()}
-              </span>
+            <div className="topic-header">
+              <h2>{topicSummary[currentArticle].title}</h2>
+              <div className="article-summary">
+                {topicSummary[currentArticle].content}
+              </div>
+            </div>
+            <div className="related-articles">
+              <h3>관련 기사</h3>
+              {articles.map((article) => (
+                article.topic === topicSummary[currentArticle].title ? (
+                  <div key={article.id} className="related-article">
+                    <h4>{article.title}</h4>
+                    <div
+                      className="article-content"
+                      dangerouslySetInnerHTML={{ __html: article.content || '' }}
+                    />
+                    <div className="article-meta">
+                      <a className="url" href={article.url} target="_blank" rel="noopener noreferrer">출처: {article.source}</a>
+                      <span className="date">
+                        {new Date(article.publishedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ) : null
+              ))}
             </div>
             <div className="article-index">
-              {currentArticle + 1} / {articles.length}
+              {currentArticle + 1} / {topicSummary.length}
             </div>
             <div className="article-nav-buttons">
               <button
@@ -133,7 +159,7 @@ const NewsletterPage: React.FC = () => {
               <button
                 className="article-nav-btn"
                 onClick={() => handleSwipe('left')}
-                disabled={currentArticle === articles.length - 1}
+                disabled={currentArticle === topicSummary.length - 1}
                 aria-label="다음 기사"
               >
                 ➡️
