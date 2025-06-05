@@ -6,6 +6,7 @@
   left: 0;
   right: 0;
   z-index: 999;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .nav-list {
@@ -15,6 +16,8 @@
   gap: 2rem;
   margin: 0;
   padding: 0;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .nav-item {
@@ -27,7 +30,8 @@
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  display: block;
 }
 
 .nav-link:hover {
@@ -37,4 +41,54 @@
 .nav-link.active {
   background-color: #007bff;
   color: white;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .navigation {
+    padding: 0.5rem 0;
+    top: 3.5rem;
+    display: none;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .nav-item {
+    width: 100%;
+  }
+
+  .nav-link {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  .nav-link:hover {
+    background-color: #e9ecef;
+  }
+
+  .nav-link.active {
+    background-color: #007bff;
+    color: white;
+  }
+}
+
+/* 작은 모바일 화면 */
+@media (max-width: 480px) {
+  .navigation {
+    top: 3rem;
+  }
+
+  .nav-list {
+    padding: 0.5rem;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+    padding: 0.6rem 0.8rem;
+  }
 } 

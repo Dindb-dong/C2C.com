@@ -5,17 +5,32 @@ const USER_ROLE_KEY = 'userRole';
 const USER_ID_KEY = 'userId';
 
 // 로컬 스토리지에서 토큰 가져오기
-export async function getAccessToken(): Promise<string | null> {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-}
+export const getAccessToken = async (): Promise<string | null> => {
+  try {
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
+  } catch (error) {
+    console.error('Error getting access token:', error);
+    return null;
+  }
+};
 
-export function setAccessToken(token: string): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
-}
+export const setAccessToken = async (token: string): Promise<void> => {
+  try {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  } catch (error) {
+    console.error('Error setting access token:', error);
+    throw error;
+  }
+};
 
-export function removeAccessToken(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-}
+export const removeAccessToken = async (): Promise<void> => {
+  try {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+  } catch (error) {
+    console.error('Error removing access token:', error);
+    throw error;
+  }
+};
 
 export async function getRefreshToken(): Promise<string | null> {
   return localStorage.getItem(REFRESH_TOKEN_KEY);

@@ -22,7 +22,7 @@ const Header: React.FC = () => {
           <HamburgerMenu />
           <Link to="/main" className="site-title">C2C.com</Link>
         </div>
-        <form className="search-form" onSubmit={handleSearch}>
+        {/* <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"
             placeholder="검색어를 입력하세요"
@@ -33,7 +33,7 @@ const Header: React.FC = () => {
           <button type="submit" className="search-button">
             검색
           </button>
-        </form>
+        </form> */}
         {showNoResults && (
           <div className="no-results">
             검색 결과가 없습니다.
