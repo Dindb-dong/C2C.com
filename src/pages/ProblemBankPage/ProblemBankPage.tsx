@@ -3,6 +3,13 @@ import ReactMarkdown from 'react-markdown';
 import './ProblemBankPage.css';
 import { request } from '../../utils/request';
 import { getUserId } from '../../utils/storage';
+import OpenAI from 'openai';
+
+// OpenAI API 설정
+const openai = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
 interface ChatMessage {
   id: string;
@@ -30,12 +37,44 @@ interface ChatRequest {
 
 const sendMessage = async (messages: ChatRequest['messages']): Promise<ChatMessage> => {
   try {
-    const response = await request.post<{ success: boolean; data: ChatMessage }>('/chat', {
-      messages,
+    // OpenAI API 직접 호출
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      temperature: 0.7,
+      max_tokens: 1000,
+      presence_penalty: 0.6,
+      frequency_penalty: 0.3,
+    });
+
+    if (!completion.choices[0]?.message?.content) {
+      throw new Error('No response from OpenAI');
+    }
+
+    const response: ChatMessage = {
+      id: crypto.randomUUID(),
+      userId: await getUserId() || '',
+      content: completion.choices[0].message.content,
+      role: 'assistant',
+      createdAt: new Date(),
+      metadata: {
+        tokens: completion.usage?.total_tokens,
+        model: completion.model,
+        temperature: 0.7
+      }
+    };
+
+    // 서버에 메시지 저장
+    await request.post<{ success: boolean; data: ChatMessage }>('/chat', {
+      messages: [response],
       model: 'gpt-4o',
       temperature: 0.7,
     });
-    return response.data.data;
+
+    return response;
   } catch (error) {
     console.error('Chat error:', error);
     throw error;
