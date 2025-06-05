@@ -1,96 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './NewsletterPage.css';
+import { request } from '../../utils/request';
 
-interface Article {
-  id: number;
+interface NewsArticle {
+  id: string;
   title: string;
   content: string;
-  topic: string;
+  summary: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  categoryCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Category {
+  name: string;
+  code: string;
 }
 
 const NewsletterPage: React.FC = () => {
-  const articles: Article[] = [
-    {
-      id: 1,
-      title: 'AI가 바꿀 미래 산업',
-      content: 'AI 기술이 다양한 산업에 혁신을 가져오고 있습니다. 앞으로의 변화에 주목하세요.',
-      topic: '기술',
-    },
-    {
-      id: 2,
-      title: '금리 인상, 경제에 미치는 영향',
-      content: '최근 금리 인상이 경제 전반에 어떤 영향을 미치는지 분석합니다.',
-      topic: '경제',
-    },
-    {
-      id: 3,
-      title: '우주 탐사의 새로운 시대',
-      content: '민간 기업의 우주 진출이 활발해지며 우주 탐사의 패러다임이 바뀌고 있습니다.',
-      topic: '과학',
-    },
-    {
-      id: 4,
-      title: 'MZ세대의 문화 트렌드',
-      content: 'MZ세대가 주도하는 새로운 문화 트렌드와 그 영향력을 살펴봅니다.',
-      topic: '문화',
-    },
+  const categories: Category[] = [
+    { name: '정치', code: '10000000' },
+    { name: '경제', code: '20000000' },
+    { name: '사회', code: '30000000' },
+    { name: '문화', code: '40000000' },
+    { name: '국제', code: '50000000' },
+    { name: '지역', code: '60000000' },
+    { name: '스포츠', code: '70000000' },
+    { name: 'IT과학', code: '80000000' }
   ];
 
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [currentArticle, setCurrentArticle] = useState(0);
-  const [selectedTopic, setSelectedTopic] = useState('all');
-  const [customTopic, setCustomTopic] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('20000000');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const topics = ['기술', '경제', '과학', '문화', '기타'];
-  const recommendedTopics = ['인공지능', '블록체인', '스타트업', '환경'];
+  useEffect(() => {
+    fetchArticles(selectedCategory);
+  }, [selectedCategory]);
 
-  const filteredArticles = selectedTopic === 'all'
-    ? articles
-    : selectedTopic === 'custom' && customTopic
-      ? articles.filter(a => a.topic.includes(customTopic))
-      : articles.filter(a => a.topic === selectedTopic);
+  const fetchArticles = async (categoryCode: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await request.get<NewsArticle[]>(`/news/category/${categoryCode}`);
+      console.log(response.data);
+      setArticles(response.data);
+      setCurrentArticle(0);
+    } catch (err) {
+      setError('뉴스를 불러오는데 실패했습니다.');
+      console.error('Error fetching articles:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left') {
-      setCurrentArticle(prev => Math.min(filteredArticles.length - 1, prev + 1));
+      setCurrentArticle(prev => Math.min(articles.length - 1, prev + 1));
     } else {
       setCurrentArticle(prev => Math.max(0, prev - 1));
     }
   };
 
-  const handleTopicSelect = (topic: string) => {
-    setCurrentArticle(0);
-    if (topic === '기타') {
-      setSelectedTopic('custom');
-    } else {
-      setSelectedTopic(topic);
-    }
+  const handleCategorySelect = (categoryCode: string) => {
+    setSelectedCategory(categoryCode);
   };
 
   return (
     <div className="newsletter-page">
-      <div className="topic-filters">
-        {topics.map((topic) => (
+      <div className="category-filters">
+        {categories.map((category) => (
           <button
-            key={topic}
-            className={`topic-button ${selectedTopic === topic ? 'active' : ''}`}
-            onClick={() => handleTopicSelect(topic)}
+            key={category.code}
+            className={`category-button ${selectedCategory === category.code ? 'active' : ''}`}
+            onClick={() => handleCategorySelect(category.code)}
           >
-            {topic}
+            {category.name}
           </button>
         ))}
-        {selectedTopic === 'custom' && (
-          <input
-            type="text"
-            value={customTopic}
-            onChange={(e) => setCustomTopic(e.target.value)}
-            placeholder="주제를 입력하세요"
-            className="custom-topic-input"
-          />
-        )}
       </div>
 
       <div className="article-container">
-        {filteredArticles.length > 0 ? (
+        {loading ? (
+          <div className="loading">로딩 중...</div>
+        ) : error ? (
+          <div className="error">{error}</div>
+        ) : articles.length > 0 ? (
           <div
             className="article"
             onTouchStart={(e) => {
@@ -107,11 +107,19 @@ const NewsletterPage: React.FC = () => {
               document.addEventListener('touchmove', handleTouchMove);
             }}
           >
-            <h2>{filteredArticles[currentArticle]?.title}</h2>
-            <p>{filteredArticles[currentArticle]?.content}</p>
-            <div className="article-topic">주제: {filteredArticles[currentArticle]?.topic}</div>
+            <h2>{articles[currentArticle]?.title}</h2>
+            <div
+              className="article-content"
+              dangerouslySetInnerHTML={{ __html: articles[currentArticle]?.content || '' }}
+            />
+            <div className="article-meta">
+              <a className="url" href={articles[currentArticle]?.url} target="_blank" rel="noopener noreferrer">출처: {articles[currentArticle]?.source}</a>
+              <span className="date">
+                {new Date(articles[currentArticle]?.publishedAt).toLocaleDateString()}
+              </span>
+            </div>
             <div className="article-index">
-              {currentArticle + 1} / {filteredArticles.length}
+              {currentArticle + 1} / {articles.length}
             </div>
             <div className="article-nav-buttons">
               <button
@@ -125,7 +133,7 @@ const NewsletterPage: React.FC = () => {
               <button
                 className="article-nav-btn"
                 onClick={() => handleSwipe('left')}
-                disabled={currentArticle === filteredArticles.length - 1}
+                disabled={currentArticle === articles.length - 1}
                 aria-label="다음 기사"
               >
                 ➡️
@@ -133,23 +141,8 @@ const NewsletterPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="article no-article">해당 주제의 뉴스가 없습니다.</div>
+          <div className="article no-article">해당 카테고리의 뉴스가 없습니다.</div>
         )}
-      </div>
-
-      <div className="recommended-topics">
-        <h3>맞춤 Pick 주제</h3>
-        <div className="topic-buttons">
-          {recommendedTopics.map((topic) => (
-            <button
-              key={topic}
-              className="recommended-topic-button"
-              onClick={() => handleTopicSelect(topic)}
-            >
-              {topic}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

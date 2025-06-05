@@ -86,6 +86,7 @@ const ProblemBankPage: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log(messages.map(msg => ({ role: msg.role, content: msg.content })));
       const response = await sendMessage([
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: inputMessage }
