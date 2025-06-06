@@ -15,7 +15,7 @@ interface ChatMessage {
   id: string;
   userId: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   createdAt: Date;
   problemId?: string;
   metadata?: {
@@ -27,13 +27,26 @@ interface ChatMessage {
 
 interface ChatRequest {
   messages: Array<{
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     content: string;
   }>;
   model?: string;
   temperature?: number;
   problemId?: string;
 }
+
+const SYSTEM_PROMPT = `
+당신은 MBB 스타일의 경영 컨설턴트 면접관입니다. 
+항상 냉철하고 논리적으로 판단하며, 형식적 인삿말(예: "알겠습니다", "문제: ~") 없이 바로 본론만 말합니다.
+게스티메이션이나 케이스 문제를 낼 때에는 간결하고 날카롭게 질문만 던지세요.
+답변을 평가할 때는, 논리의 비약, 전제의 모호성 등을 지적하세요. 만약 사용자의 답변이 부적절하다면 다시 생각할 기회를 주세요.
+너무 친절하거나 정중한 말투는 피하고, 실제 면접관처럼 행동하세요.
+`;
+
+const getSystemMessage = () => ({
+  role: 'system' as const,
+  content: SYSTEM_PROMPT,
+});
 
 const sendMessage = async (messages: ChatRequest['messages']): Promise<ChatMessage> => {
   try {
@@ -92,6 +105,7 @@ const ProblemBankPage: React.FC = () => {
   useEffect(() => {
     const fetchUserId = async () => {
       const id = await getUserId();
+      console.log(id);
       setUserId(id);
     };
     fetchUserId();
@@ -115,7 +129,7 @@ const ProblemBankPage: React.FC = () => {
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
       userId,
-      content: '당신은 면접관입니다.' + inputMessage + '나에게 답변을 줄 때, 실제 면접관처럼 해주세요.',
+      content: inputMessage,
       role: 'user',
       createdAt: new Date(),
     };
@@ -127,6 +141,7 @@ const ProblemBankPage: React.FC = () => {
     try {
       console.log(messages.map(msg => ({ role: msg.role, content: msg.content })));
       const response = await sendMessage([
+        getSystemMessage(),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: inputMessage }
       ]);
@@ -155,7 +170,7 @@ const ProblemBankPage: React.FC = () => {
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
       userId,
-      content: '당신은 면접관입니다.' + templateMessage + '나에게 답변을 줄 때, 실제 면접관처럼 해주세요.',
+      content: templateMessage,
       role: 'user',
       createdAt: new Date(),
     };
@@ -165,6 +180,7 @@ const ProblemBankPage: React.FC = () => {
 
     try {
       const response = await sendMessage([
+        getSystemMessage(),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: templateMessage }
       ]);
