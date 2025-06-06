@@ -61,6 +61,7 @@ const SignupPage: React.FC = () => {
       if (response.status === 201) {
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('userId', response.data.user.id);
         alert('회원가입이 완료되었습니다!');
         navigate('/');
       } else if (response.status === 400) {

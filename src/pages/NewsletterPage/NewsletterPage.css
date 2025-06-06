@@ -43,6 +43,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .article {
@@ -148,10 +149,17 @@
 }
 
 .article-nav-buttons {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 2rem;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1rem;
+  pointer-events: none;
+  z-index: 100;
 }
 
 .article-nav-btn {
@@ -166,6 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .article-nav-btn:disabled {
@@ -288,5 +298,16 @@
 
   .related-article .article-content {
     font-size: 0.95rem;
+  }
+
+  .article-nav-buttons {
+    padding: 0 0.5rem;
+    max-width: 100%;
+  }
+  
+  .article-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
   }
 } 
