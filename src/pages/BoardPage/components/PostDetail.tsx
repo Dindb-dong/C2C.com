@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useBoard } from '../../../contexts/BoardContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePost } from '../../../contexts/PostContext';
@@ -172,34 +172,33 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onDelete }) => {
             <span key={tag} className="tag">{tag}</span>
           ))}
         </div>
-        <div className="post-actions">
-          <button
-            onClick={handlePostLike}
-            className={`like-button ${postLikeLoading ? 'loading' : ''}`}
-            disabled={postLikeLoading}
-          >
-            {postLikeLoading ? '처리중...' : `👍 ${currentPost.likes || 0}`}
-          </button>
-          <button
-            onClick={handlePostDislike}
-            className={`dislike-button ${postDislikeLoading ? 'loading' : ''}`}
-            disabled={postDislikeLoading}
-          >
-            {postDislikeLoading ? '처리중...' : `👎 ${currentPost.dislikes || 0}`}
-          </button>
-          {user && user.id === currentPost.author.id && (
-            <>
-              <button onClick={() => navigate(`/board/${currentBoard?.id}/${currentPost.id}/edit`)} className="edit-button">수정</button>
-              <button onClick={onDelete} className="delete-button">삭제</button>
-            </>
-          )}
-        </div>
       </div>
 
       <div className="post-content">
         <div dangerouslySetInnerHTML={{ __html: currentPost.content }} />
       </div>
-
+      <div className="post-actions">
+        <button
+          onClick={handlePostLike}
+          className={`like-button ${postLikeLoading ? 'loading' : ''}`}
+          disabled={postLikeLoading}
+        >
+          {postLikeLoading ? '처리중...' : `👍 ${currentPost.likes || 0}`}
+        </button>
+        <button
+          onClick={handlePostDislike}
+          className={`dislike-button ${postDislikeLoading ? 'loading' : ''}`}
+          disabled={postDislikeLoading}
+        >
+          {postDislikeLoading ? '처리중...' : `👎 ${currentPost.dislikes || 0}`}
+        </button>
+        {user && user.id === currentPost.author.id && (
+          <>
+            <button onClick={() => navigate(`/board/${currentBoard?.id}/${currentPost.id}/edit`)} className="edit-button">수정</button>
+            <button onClick={onDelete} className="delete-button">삭제</button>
+          </>
+        )}
+      </div>
       <div className="comments-section">
         <h2>댓글</h2>
         <form onSubmit={handleCommentSubmit} className="comment-form">

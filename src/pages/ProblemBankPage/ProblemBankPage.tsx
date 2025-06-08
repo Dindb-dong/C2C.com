@@ -29,10 +29,17 @@ interface ChatRequest {
   messages: Array<{
     role: 'user' | 'assistant' | 'system';
     content: string;
+    metadata?: {
+      tokens?: number;
+    };
   }>;
   model?: string;
   temperature?: number;
   problemId?: string;
+  sessionId?: string;
+  title?: string;
+  question?: string;
+  answer?: string;
 }
 
 const SYSTEM_PROMPT = `
@@ -48,7 +55,13 @@ const getSystemMessage = () => ({
   content: SYSTEM_PROMPT,
 });
 
-const sendMessage = async (messages: ChatRequest['messages']): Promise<ChatMessage> => {
+const generateProblemId = (userId: string): string => {
+  const prefix = userId.slice(0, 5);
+  const timestamp = Date.now();
+  return `${prefix}_${timestamp}`;
+};
+
+const sendMessage = async (messages: ChatRequest['messages'], userId: string, problemId: string, title?: string): Promise<ChatMessage> => {
   try {
     // OpenAI API 직접 호출
     const completion = await openai.chat.completions.create({
@@ -67,27 +80,49 @@ const sendMessage = async (messages: ChatRequest['messages']): Promise<ChatMessa
       throw new Error('No response from OpenAI');
     }
 
-    const response: ChatMessage = {
+    const assistantMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      userId: await getUserId() || '',
+      userId,
       content: completion.choices[0].message.content,
       role: 'assistant',
       createdAt: new Date(),
+      problemId,
       metadata: {
         tokens: completion.usage?.total_tokens,
         model: completion.model,
         temperature: 0.7
       }
     };
+    console.log(messages);
+    console.log(assistantMessage);
 
     // 서버에 메시지 저장
-    await request.post<{ success: boolean; data: ChatMessage }>('/chat', {
-      messages: [response],
+    const chatRequest: ChatRequest = {
+      messages: [
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          metadata: msg.metadata
+        })),
+        {
+          role: 'assistant',
+          content: assistantMessage.content,
+          metadata: {
+            tokens: assistantMessage.metadata?.tokens
+          }
+        }
+      ],
       model: 'gpt-4o',
       temperature: 0.7,
-    });
+      problemId,
+      title: title || assistantMessage.content,
+      answer: assistantMessage.content,
+      question: messages[1]?.content,
+    };
 
-    return response;
+    await request.post<{ success: boolean; data: ChatMessage }>('/chat', chatRequest);
+
+    return assistantMessage;
   } catch (error) {
     console.error('Chat error:', error);
     throw error;
@@ -99,14 +134,17 @@ const ProblemBankPage: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [problemId, setProblemId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const [title, setTitle] = useState<string>('');
   useEffect(() => {
     const fetchUserId = async () => {
       const id = await getUserId();
-      console.log(id);
-      setUserId(id);
+      if (id) {
+        setUserId(id);
+        setProblemId(generateProblemId(id));
+      }
     };
     fetchUserId();
   }, []);
@@ -124,7 +162,7 @@ const ProblemBankPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading || !userId) return;
+    if (!inputMessage.trim() || isLoading || !userId || !problemId) return;
 
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -132,6 +170,7 @@ const ProblemBankPage: React.FC = () => {
       content: inputMessage,
       role: 'user',
       createdAt: new Date(),
+      problemId,
     };
 
     setMessages(prev => [...prev, newUserMessage]);
@@ -139,13 +178,13 @@ const ProblemBankPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log(messages.map(msg => ({ role: msg.role, content: msg.content })));
       const response = await sendMessage([
         getSystemMessage(),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: inputMessage }
-      ]);
+      ], userId, problemId, title);
       setMessages(prev => [...prev, response]);
+      setTitle(response?.content);
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -153,6 +192,7 @@ const ProblemBankPage: React.FC = () => {
         content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
         role: 'assistant',
         createdAt: new Date(),
+        problemId,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -161,7 +201,7 @@ const ProblemBankPage: React.FC = () => {
   };
 
   const handleTemplateClick = async (templateType: 'guesstimation' | 'case') => {
-    if (isLoading || !userId) return;
+    if (isLoading || !userId || !problemId) return;
 
     const templateMessage = templateType === 'guesstimation'
       ? '게스티메이션 문제를 만들어주세요.'
@@ -173,6 +213,7 @@ const ProblemBankPage: React.FC = () => {
       content: templateMessage,
       role: 'user',
       createdAt: new Date(),
+      problemId,
     };
 
     setMessages(prev => [...prev, newUserMessage]);
@@ -183,8 +224,9 @@ const ProblemBankPage: React.FC = () => {
         getSystemMessage(),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: templateMessage }
-      ]);
+      ], userId, problemId, title);
       setMessages(prev => [...prev, response]);
+      setTitle(response?.content);
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -192,6 +234,7 @@ const ProblemBankPage: React.FC = () => {
         content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
         role: 'assistant',
         createdAt: new Date(),
+        problemId,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
