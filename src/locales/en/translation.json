@@ -1,0 +1,32 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language Settings",
+    "theme": "Theme Settings"
+  },
+  "mainPage": {
+    "news": {
+      "title": "Latest News",
+      "problemBank": "Problem Bank service has been updated!",
+      "newsletter": "Newsletter service has been added!",
+      "language": "English and Japanese language settings coming soon!"
+    },
+    "stats": {
+      "title": "Site Statistics",
+      "totalUsers": "Total Users",
+      "totalPosts": "Total Posts",
+      "activeUsers": "Active Users",
+      "users": "users",
+      "posts": "posts"
+    },
+    "hotPosts": {
+      "title": "🔥 Hot Posts"
+    }
+  }
+} 

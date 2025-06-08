@@ -1,0 +1,32 @@
+{
+  "common": {
+    "welcome": "ようこそ",
+    "login": "ログイン",
+    "signup": "新規登録",
+    "logout": "ログアウト"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語設定",
+    "theme": "テーマ設定"
+  },
+  "mainPage": {
+    "news": {
+      "title": "最新ニュース",
+      "problemBank": "問題バンクサービスがリニューアルされました！",
+      "newsletter": "ニュースレターサービスが追加されました！",
+      "language": "英語、日本語の言語設定がまもなく追加されます！"
+    },
+    "stats": {
+      "title": "サイト統計",
+      "totalUsers": "総ユーザー数",
+      "totalPosts": "総投稿数",
+      "activeUsers": "アクティブユーザー",
+      "users": "人",
+      "posts": "件"
+    },
+    "hotPosts": {
+      "title": "🔥 人気投稿"
+    }
+  }
+} 
