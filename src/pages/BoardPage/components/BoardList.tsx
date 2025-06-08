@@ -1,7 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './BoardList.css';
-import { Board, Post } from '../../../types';
 
 interface BoardListProps {
   boards: Board[];
@@ -10,7 +9,6 @@ interface BoardListProps {
 
 const BoardList: React.FC<BoardListProps> = ({ boards, posts }) => {
   const navigate = useNavigate();
-
   return (
     <div className="board-list">
       <div className="board-list-header">
@@ -21,7 +19,7 @@ const BoardList: React.FC<BoardListProps> = ({ boards, posts }) => {
       </div>
       <div className="boards-grid">
         {boards.map((board) => (
-          <div
+          <button
             key={board.id}
             className="board-card"
             onClick={() => navigate(`/board/${board.name}`)}
@@ -31,7 +29,7 @@ const BoardList: React.FC<BoardListProps> = ({ boards, posts }) => {
             {/* <div className="board-stats">
               <span>게시글 {posts.filter(post => post.boardId === board.id).length}개</span>
             </div> */}
-          </div>
+          </button>
         ))}
       </div>
     </div>

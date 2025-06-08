@@ -20,8 +20,10 @@ interface PostContextType {
   error: string | null;
   addComment: (boardId: string, postId: string, content: string) => Promise<void>;
   deleteComment: (postId: string, commentId: string) => Promise<void>;
-  likeComment: (boardId: string, postId: string, commentId: string) => Promise<void>;
-  dislikeComment: (boardId: string, postId: string, commentId: string) => Promise<void>;
+  likeComment: (boardId: string, postId: string, commentId: string, userId: string) => Promise<void>;
+  dislikeComment: (boardId: string, postId: string, commentId: string, userId: string) => Promise<void>;
+  likePost: (boardId: string, postId: string, userId: string) => Promise<void>;
+  dislikePost: (boardId: string, postId: string, userId: string) => Promise<void>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -70,7 +72,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [loading]);
 
-  const likeComment = useCallback(async (boardId: string, postId: string, commentId: string) => {
+  const likeComment = useCallback(async (boardId: string, postId: string, commentId: string, userId: string) => {
     if (loading) return;
     setLoading(true);
     setError(null);
@@ -80,9 +82,9 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('로그인이 필요합니다.');
       }
 
-      await request.post(`/boards/${boardId}/posts/${postId}/comments/${commentId}/like`);
+      await request.post(`/boards/${boardId}/posts/${postId}/comments/${commentId}/like`, { boardId, postId, commentId, userId });
     } catch (error) {
-      setError('좋아요에 실패했습니다.');
+      setError('댓글 좋아요에 실패했습니다.');
       console.error('Error liking comment:', error);
       throw error;
     } finally {
@@ -90,7 +92,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [loading]);
 
-  const dislikeComment = useCallback(async (boardId: string, postId: string, commentId: string) => {
+  const dislikeComment = useCallback(async (boardId: string, postId: string, commentId: string, userId: string) => {
     if (loading) return;
     setLoading(true);
     setError(null);
@@ -100,10 +102,50 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('로그인이 필요합니다.');
       }
 
-      await request.post(`/boards/${boardId}/posts/${postId}/comments/${commentId}/dislike`);
+      await request.post(`/boards/${boardId}/posts/${postId}/comments/${commentId}/dislike`, { boardId, postId, commentId, userId });
     } catch (error) {
-      setError('싫어요에 실패했습니다.');
+      setError('댓글 싫어요에 실패했습니다.');
       console.error('Error disliking comment:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [loading]);
+
+  const likePost = useCallback(async (boardId: string, postId: string, userId: string) => {
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
+      await request.post(`/boards/${boardId}/posts/${postId}/like`, { boardId, postId, userId });
+    } catch (error) {
+      setError('게시글 좋아요에 실패했습니다.');
+      console.error('Error liking post:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [loading]);
+
+  const dislikePost = useCallback(async (boardId: string, postId: string, userId: string) => {
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
+      await request.post(`/boards/${boardId}/posts/${postId}/dislike`, { boardId, postId, userId });
+    } catch (error) {
+      setError('게시글 싫어요에 실패했습니다.');
+      console.error('Error disliking post:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -116,7 +158,9 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addComment,
     deleteComment,
     likeComment,
-    dislikeComment
+    dislikeComment,
+    likePost,
+    dislikePost
   };
 
   return (

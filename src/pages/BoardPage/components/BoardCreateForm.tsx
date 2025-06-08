@@ -27,6 +27,7 @@ const BoardCreateForm: React.FC = () => {
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder='예: 경제 게시판'
           required
         />
       </div>
@@ -37,6 +38,7 @@ const BoardCreateForm: React.FC = () => {
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          placeholder='예: 경제 전반을 다루는 게시판입니다.'
           required
         />
       </div>

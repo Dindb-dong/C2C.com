@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { usePost } from '../../../contexts/PostContext';
 import './PostDetail.css';
 import { request } from '../../../utils/request';
+import { getUserId } from '../../../utils/storage';
 
 interface PostDetailProps {
   post: any;
@@ -26,10 +27,13 @@ interface Comment {
 const PostDetail: React.FC<PostDetailProps> = ({ post, onDelete }) => {
   const { user } = useAuth();
   const { currentBoard } = useBoard();
-  const { addComment, deleteComment, likeComment, dislikeComment } = usePost();
+  const { addComment, deleteComment, likeComment, dislikeComment, likePost, dislikePost } = usePost();
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [postLikeLoading, setPostLikeLoading] = useState(false);
+  const [postDislikeLoading, setPostDislikeLoading] = useState(false);
+  const [currentPost, setCurrentPost] = useState(post);
   const navigate = useNavigate();
 
   const fetchComments = async () => {
@@ -45,6 +49,19 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onDelete }) => {
       console.error('댓글 로드 실패:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPost = async () => {
+    if (!currentBoard?.id || !post.id) return;
+    try {
+      const response = await request.get(`/boards/${currentBoard.id}/posts/${post.id}`);
+      if (response.status === 200) {
+        setCurrentPost(response.data);
+        console.log('fetchPost in PostDetail', response.data);
+      }
+    } catch (error) {
+      console.error('게시글 로드 실패:', error);
     }
   };
 
@@ -76,7 +93,12 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onDelete }) => {
 
   const handleCommentLike = async (commentId: string) => {
     try {
-      await likeComment(currentBoard?.id || '', post.id, commentId);
+      const userId = await getUserId();
+      if (!userId) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      await likeComment(currentBoard?.id || '', post.id, commentId, userId);
       fetchComments(); // 좋아요 후 목록 새로고침
     } catch (error) {
       console.error('좋아요 실패:', error);
@@ -85,38 +107,98 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onDelete }) => {
 
   const handleCommentDislike = async (commentId: string) => {
     try {
-      await dislikeComment(currentBoard?.id || '', post.id, commentId);
+      const userId = await getUserId();
+      if (!userId) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      await dislikeComment(currentBoard?.id || '', post.id, commentId, userId);
       fetchComments(); // 싫어요 후 목록 새로고침
     } catch (error) {
       console.error('싫어요 실패:', error);
     }
   };
 
+  const handlePostLike = async () => {
+    if (postLikeLoading) return;
+    try {
+      setPostLikeLoading(true);
+      const userId = await getUserId();
+      if (!userId) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      await likePost(currentBoard?.id || '', post.id, userId);
+      await fetchPost(); // 게시글 데이터만 새로 불러오기
+    } catch (error) {
+      console.error('게시글 좋아요 실패:', error);
+    } finally {
+      setPostLikeLoading(false);
+    }
+  };
+
+  const handlePostDislike = async () => {
+    if (postDislikeLoading) return;
+    try {
+      setPostDislikeLoading(true);
+      const userId = await getUserId();
+      if (!userId) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      await dislikePost(currentBoard?.id || '', post.id, userId);
+      await fetchPost(); // 게시글 데이터만 새로 불러오기
+    } catch (error) {
+      console.error('게시글 싫어요 실패:', error);
+    } finally {
+      setPostDislikeLoading(false);
+    }
+  };
+
+  if (!currentPost) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>로딩중...</div>;
+  }
+
   return (
     <div className="post-detail">
       <div className="post-header">
-        <h2>제목: {post.title}</h2>
+        <h2>제목: {currentPost.title}</h2>
         <div className="post-meta">
-          <span className="post-author">작성자: {post.author.name}</span>
-          <span className="post-date">작성 날짜: {new Date(post.createdAt).toLocaleString()}</span>
+          <span className="post-author">작성자: {currentPost.author.name}</span>
+          <span className="post-date">작성 날짜: {new Date(currentPost.createdAt).toLocaleString()}</span>
         </div>
         <div className="post-tags">
-          태그: {post.tags.map((tag: string) => (
+          태그: {currentPost.tags.map((tag: string) => (
             <span key={tag} className="tag">{tag}</span>
           ))}
+        </div>
+        <div className="post-actions">
+          <button
+            onClick={handlePostLike}
+            className={`like-button ${postLikeLoading ? 'loading' : ''}`}
+            disabled={postLikeLoading}
+          >
+            {postLikeLoading ? '처리중...' : `👍 ${currentPost.likes || 0}`}
+          </button>
+          <button
+            onClick={handlePostDislike}
+            className={`dislike-button ${postDislikeLoading ? 'loading' : ''}`}
+            disabled={postDislikeLoading}
+          >
+            {postDislikeLoading ? '처리중...' : `👎 ${currentPost.dislikes || 0}`}
+          </button>
+          {user && user.id === currentPost.author.id && (
+            <>
+              <button onClick={() => navigate(`/board/${currentBoard?.id}/${currentPost.id}/edit`)} className="edit-button">수정</button>
+              <button onClick={onDelete} className="delete-button">삭제</button>
+            </>
+          )}
         </div>
       </div>
 
       <div className="post-content">
-        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div dangerouslySetInnerHTML={{ __html: currentPost.content }} />
       </div>
-
-      {user && user.id === post.author.id && (
-        <div className="post-actions">
-          <Link to={`/board/${currentBoard?.id}/${post.id}/edit`} className="edit-button">수정</Link>
-          <button onClick={onDelete} className="delete-button">삭제</button>
-        </div>
-      )}
 
       <div className="comments-section">
         <h2>댓글</h2>

@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useBoard } from '../../contexts/BoardContext';
 import BoardList from './components/BoardList';
 import PostList from './components/PostList';
@@ -7,11 +7,9 @@ import PostDetail from './components/PostDetail';
 import BoardCreateForm from './components/BoardCreateForm';
 import BoardWriteForm from './components/BoardWriteForm';
 import './BoardPage.css';
-import { Post } from '../../types';
 
 const BoardPage: React.FC = () => {
   const { category, postId } = useParams<{ category?: string; postId?: string }>();
-  const navigate = useNavigate();
   const {
     boards,
     posts,
@@ -30,39 +28,35 @@ const BoardPage: React.FC = () => {
   const boardsLoaded = useRef(false);
   const lastPostId = useRef<string | undefined>(undefined);
 
-  // boards 데이터 로드
+  // boards 데이터 로드 (최초 1회만)
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
+    if (!boards.length) {
       fetchBoards();
     }
+    // fetchBoards만 의존성에 넣기
   }, [fetchBoards]);
 
-  // boards가 로드된 후 posts 데이터 로드
+  // posts, post 데이터 로드
   useEffect(() => {
-    if (loading || !boards.length) return;
+    if (!boards.length) return; // boards가 없으면 아무것도 하지 않음
+    if (isCreate || isWrite) return;
 
-    if (isCreate || isWrite) {
-      return;
-    }
+    const board = boards.find(b => b.name === category);
+    if (!board) return;
 
-    if (postId && category) {
-      const board = boards.find(b => b.name === category);
-      if (board) {
-        // postId가 변경되었을 때만 fetchPost 호출
-        if (postId !== lastPostId.current) {
-          lastPostId.current = postId;
-          fetchPost(board.id, postId);
-        }
+    if (category && postId) {
+      // currentPost가 없을 때만 fetch
+      if (!currentPost || currentPost.id !== postId) {
+        fetchPost(board.id, postId);
       }
     } else if (category) {
-      const board = boards.find(b => b.name === category);
-      if (board && !boardsLoaded.current) {
-        boardsLoaded.current = true;
+      // posts가 없을 때만 fetch
+      if (!posts.length || posts[0].boardId !== board.id) {
         fetchPosts(board.id);
       }
     }
-  }, [category, postId, isWrite, isCreate, fetchPosts, fetchPost, boards, loading]);
+    // category, postId, boards, isCreate, isWrite, fetchPosts, fetchPost만 의존성에 넣기
+  }, [category, postId, boards, isCreate, isWrite, fetchPosts, fetchPost]);
 
   const handleDeletePost = useCallback(async () => {
     if (!category || !postId) return;
@@ -70,12 +64,11 @@ const BoardPage: React.FC = () => {
       const board = boards.find(b => b.name === category);
       if (board) {
         await deletePost(board.id, postId);
-        navigate(`/board/${category}`);
       }
     } catch (error) {
       console.error('게시글 삭제 실패:', error);
     }
-  }, [category, postId, deletePost, navigate, boards]);
+  }, [category, postId, deletePost, boards]);
 
   if (loading) {
     return <div className="board-container">로딩 중...</div>;

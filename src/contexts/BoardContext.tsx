@@ -2,43 +2,6 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import { getAccessToken } from '../utils/storage';
 import { request } from '../utils/request';
 
-interface Board {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: Date;
-  updatedAt: Date;
-  posts: Post[];
-}
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  category: string;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  comments: Comment[];
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  likes: number;
-  dislikes: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 interface BoardContextType {
   boards: Board[];
   posts: Post[];
@@ -46,8 +9,8 @@ interface BoardContextType {
   currentPost: Post | null;
   loading: boolean;
   error: string | null;
-  fetchBoards: () => Promise<void>;
-  fetchPosts: (boardId: string) => Promise<void>;
+  fetchBoards: () => Promise<Board[] | undefined>;
+  fetchPosts: (boardId: string) => Promise<Post[] | undefined>;
   fetchPost: (boardId: string, postId: string) => Promise<void>;
   createBoard: (data: { name: string; description: string }) => Promise<void>;
   createPost: (boardId: string, data: { title: string; content: string; category: string; tags: string[] }) => Promise<void>;
@@ -83,7 +46,8 @@ export const BoardProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       const response = await request.get<Board[]>('/boards');
       setBoards(response.data);
-      console.log(response.data);
+      console.log('fetchBoards', response.data);
+      return response.data;
     } catch (error) {
       setError('게시판 목록을 불러오는데 실패했습니다.');
       console.error('Error fetching boards:', error);
@@ -107,6 +71,7 @@ export const BoardProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const response = await request.get<Post[]>(`/boards/${boardId}/posts`);
       setPosts(response.data);
       setCurrentBoard(boards.find(board => board.id === boardId) || null);
+      return response.data;
     } catch (error) {
       setError('게시글 목록을 불러오는데 실패했습니다.');
       console.error('Error fetching posts:', error);
@@ -121,6 +86,7 @@ export const BoardProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     requestInProgress.current = true;
     setLoading(true);
     setError(null);
+    setCurrentPost(null);
     try {
       const token = await getAccessToken();
       if (!token) {
@@ -129,6 +95,7 @@ export const BoardProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       const response = await request.get<Post>(`/boards/${boardId}/posts/${postId}`);
       setCurrentPost(response.data);
+      console.log('fetchPost', response.data);
       setCurrentBoard(boards.find(board => board.id === boardId) || null);
     } catch (error) {
       setError('게시글을 불러오는데 실패했습니다.');
