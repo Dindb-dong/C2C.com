@@ -31,8 +31,8 @@
   },
   "problemBank": {
     "title": "Problem Bank",
-    "guesstimation": "Create a guesstimation problem.",
-    "case": "Start a case interview.",
+    "guesstimation": "Please create a guesstimation problem.",
+    "case": "Please start a case interview.",
     "inputPlaceholder": "Type your message... (Shift + Enter for new line)",
     "sending": "Sending...",
     "send": "Send",
