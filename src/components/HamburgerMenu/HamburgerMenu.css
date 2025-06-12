@@ -87,4 +87,59 @@
 
 .modal-nav-link:hover {
   background-color: #f0f0f0;
+}
+
+.language-selector {
+  position: relative;
+}
+
+.language-selector .modal-nav-link {
+  cursor: default;
+}
+
+.language-selector .language-options {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  min-width: 120px;
+}
+
+.language-selector:hover .language-options {
+  display: block;
+}
+
+.language-selector .language-option {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.language-selector .language-option:hover {
+  background-color: #f0f0f0;
+}
+
+.language-selector .language-option.selected {
+  color: #007bff;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .language-selector .language-options {
+    position: static;
+    box-shadow: none;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+  }
 } 

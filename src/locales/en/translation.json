@@ -28,5 +28,23 @@
     "hotPosts": {
       "title": "🔥 Hot Posts"
     }
+  },
+  "problemBank": {
+    "title": "Problem Bank",
+    "guesstimation": "Create a guesstimation problem.",
+    "case": "Start a case interview.",
+    "inputPlaceholder": "Type your message... (Shift + Enter for new line)",
+    "sending": "Sending...",
+    "send": "Send",
+    "error": "Sorry, an error occurred while sending the message."
+  },
+  "navigation": {
+    "newsletter": "Newsletter",
+    "problemBank": "Problem Bank",
+    "mentoring": "Mentoring",
+    "board": "Board",
+    "settings": "Settings",
+    "myPage": "My Page",
+    "language": "Language"
   }
 } 

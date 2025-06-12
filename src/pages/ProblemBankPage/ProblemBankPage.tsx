@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 import './ProblemBankPage.css';
 import { request } from '../../utils/request';
 import { getUserId } from '../../utils/storage';
@@ -42,17 +43,33 @@ interface ChatRequest {
   answer?: string;
 }
 
-const SYSTEM_PROMPT = `
+const SYSTEM_PROMPT = {
+  ko: `
 당신은 MBB 스타일의 경영 컨설턴트 면접관입니다. 
 항상 냉철하고 논리적으로 판단하며, 형식적 인삿말(예: "알겠습니다", "문제: ~") 없이 바로 본론만 말합니다.
 게스티메이션이나 케이스 문제를 낼 때에는 간결하고 날카롭게 질문만 던지세요.
 답변을 평가할 때는, 논리의 비약, 전제의 모호성 등을 지적하세요. 만약 사용자의 답변이 부적절하다면 다시 생각할 기회를 주세요.
 너무 친절하거나 정중한 말투는 피하고, 실제 면접관처럼 행동하세요.
-`;
+`,
+  en: `
+You are an MBB-style management consultant interviewer.
+Always make cold and logical judgments, and get straight to the point without formal greetings (e.g., "I understand", "Problem: ~").
+When asking guesstimation or case questions, be concise and sharp with your questions.
+When evaluating answers, point out logical leaps and ambiguous premises. If the user's answer is inappropriate, give them another chance to think.
+Avoid being too friendly or polite, and act like a real interviewer.
+`,
+  ja: `
+あなたはMBBスタイルの経営コンサルタント面接官です。
+常に冷静かつ論理的に判断し、形式的な挨拶（例：「承知しました」、「問題：〜」）なしで本題に入ります。
+概算やケースの問題を出す際は、簡潔かつ鋭く質問だけを投げかけてください。
+回答を評価する際は、論理の飛躍や前提の曖昧さなどを指摘してください。ユーザーの回答が不適切な場合は、もう一度考える機会を与えてください。
+過度に親切や丁寧な口調は避け、実際の面接官のように振る舞ってください。
+`
+};
 
-const getSystemMessage = () => ({
+const getSystemMessage = (language: string) => ({
   role: 'system' as const,
-  content: SYSTEM_PROMPT,
+  content: SYSTEM_PROMPT[language as keyof typeof SYSTEM_PROMPT] || SYSTEM_PROMPT.ko,
 });
 
 const generateProblemId = (userId: string): string => {
@@ -61,11 +78,11 @@ const generateProblemId = (userId: string): string => {
   return `${prefix}_${timestamp}`;
 };
 
-const sendMessage = async (messages: ChatRequest['messages'], userId: string, problemId: string, title?: string): Promise<ChatMessage> => {
+const sendMessage = async (messages: ChatRequest['messages'], userId: string, problemId: string, title?: string, language: string = 'ko'): Promise<ChatMessage> => {
   try {
     // OpenAI API 직접 호출
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4',
       messages: messages.map(msg => ({
         role: msg.role,
         content: msg.content
@@ -93,8 +110,6 @@ const sendMessage = async (messages: ChatRequest['messages'], userId: string, pr
         temperature: 0.7
       }
     };
-    console.log(messages);
-    console.log(assistantMessage);
 
     // 서버에 메시지 저장
     const chatRequest: ChatRequest = {
@@ -112,7 +127,7 @@ const sendMessage = async (messages: ChatRequest['messages'], userId: string, pr
           }
         }
       ],
-      model: 'gpt-4o',
+      model: 'gpt-4',
       temperature: 0.7,
       problemId,
       title: title || assistantMessage.content,
@@ -130,6 +145,7 @@ const sendMessage = async (messages: ChatRequest['messages'], userId: string, pr
 };
 
 const ProblemBankPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -138,6 +154,7 @@ const ProblemBankPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [title, setTitle] = useState<string>('');
+
   useEffect(() => {
     const fetchUserId = async () => {
       const id = await getUserId();
@@ -179,17 +196,17 @@ const ProblemBankPage: React.FC = () => {
 
     try {
       const response = await sendMessage([
-        getSystemMessage(),
+        getSystemMessage(i18n.language),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: inputMessage }
-      ], userId, problemId, title);
+      ], userId, problemId, title, i18n.language);
       setMessages(prev => [...prev, response]);
       setTitle(response?.content);
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         userId: 'system',
-        content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
+        content: t('problemBank.error'),
         role: 'assistant',
         createdAt: new Date(),
         problemId,
@@ -204,8 +221,8 @@ const ProblemBankPage: React.FC = () => {
     if (isLoading || !userId || !problemId) return;
 
     const templateMessage = templateType === 'guesstimation'
-      ? '게스티메이션 문제를 만들어주세요.'
-      : '케이스 인터뷰를 진행해주세요.';
+      ? t('problemBank.guesstimation')
+      : t('problemBank.case');
 
     const newUserMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -221,17 +238,17 @@ const ProblemBankPage: React.FC = () => {
 
     try {
       const response = await sendMessage([
-        getSystemMessage(),
+        getSystemMessage(i18n.language),
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
         { role: 'user', content: templateMessage }
-      ], userId, problemId, title);
+      ], userId, problemId, title, i18n.language);
       setMessages(prev => [...prev, response]);
       setTitle(response?.content);
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         userId: 'system',
-        content: '죄송합니다. 메시지 전송 중 오류가 발생했습니다.',
+        content: t('problemBank.error'),
         role: 'assistant',
         createdAt: new Date(),
         problemId,
@@ -251,14 +268,14 @@ const ProblemBankPage: React.FC = () => {
             className="template-button"
             disabled={isLoading}
           >
-            게스티메이션 문제를 만들어주세요.
+            {t('problemBank.guesstimation')}
           </button>
           <button
             onClick={() => handleTemplateClick('case')}
             className="template-button"
             disabled={isLoading}
           >
-            케이스 인터뷰를 진행해주세요.
+            {t('problemBank.case')}
           </button>
         </div>
         <div className="messages">
@@ -288,7 +305,7 @@ const ProblemBankPage: React.FC = () => {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="메시지를 입력하세요... (Shift + Enter로 줄바꿈)"
+            placeholder={t('problemBank.inputPlaceholder')}
             className="message-input"
             disabled={isLoading}
             rows={3}
@@ -298,7 +315,7 @@ const ProblemBankPage: React.FC = () => {
             className="send-button"
             disabled={isLoading}
           >
-            {isLoading ? '전송 중...' : '전송'}
+            {isLoading ? t('problemBank.sending') : t('problemBank.send')}
           </button>
         </form>
       </div>

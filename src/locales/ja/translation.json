@@ -28,5 +28,23 @@
     "hotPosts": {
       "title": "🔥 人気投稿"
     }
+  },
+  "problemBank": {
+    "title": "問題バンク",
+    "guesstimation": "概算問題を作成してください。",
+    "case": "ケースインタビューを開始してください。",
+    "inputPlaceholder": "メッセージを入力してください... (Shift + Enterで改行)",
+    "sending": "送信中...",
+    "send": "送信",
+    "error": "申し訳ありません。メッセージの送信中にエラーが発生しました。"
+  },
+  "navigation": {
+    "newsletter": "ニュースレター",
+    "problemBank": "問題バンク",
+    "mentoring": "メンタリング",
+    "board": "掲示板",
+    "settings": "設定",
+    "myPage": "マイページ",
+    "language": "言語"
   }
 } 
